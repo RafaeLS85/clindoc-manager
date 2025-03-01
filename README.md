@@ -1,10 +1,31 @@
-# file-test
+# ClinDoc Manager v0.1.0
 
-An Electron application with React and TypeScript
+ClinDoc Manager is a desktop application built with Electron, Vite, TypeScript, and React. It is designed to help manage clinical documents by reading and displaying DOCX files. This initial release (v0.1.0) provides the core functionality to open DOCX files and render their content on screen. Future versions will introduce additional features such as editing, searching, and more advanced document management.
 
-## Recommended IDE Setup
+## Features
 
-- [VSCode](https://code.visualstudio.com/) + [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) + [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode)
+- **Read DOCX Files:**
+  Leverage a DOCX-to-HTML conversion library (e.g., Mammoth.js) to seamlessly convert DOCX files for display.
+
+- **Display Content:**
+  The application renders the converted HTML content in a clean, user-friendly interface.
+
+## Getting Started
+
+These instructions will help you set up the project on your local machine for development and testing purposes.
+
+### Prerequisites
+
+- [Node.js](https://nodejs.org/) v14.x or later
+- [npm](https://www.npmjs.com/) or [yarn](https://yarnpkg.com/)
+
+### Installation
+
+1. **Clone the repository:**
+
+   ```bash
+   git clone <your-repository-url>
+   cd ClinDoc-Manager
 
 ## Project Setup
 
