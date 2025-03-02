@@ -2,7 +2,8 @@ import { app, shell, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
-import mammoth from 'mammoth'
+// import mammoth from 'mammoth'
+import fs from 'fs/promises'
 
 function createWindow(): void {
   // Create the browser window.
@@ -57,14 +58,35 @@ app.whenReady().then(() => {
   ipcMain.on('ping', () => console.log('pong'))
 
   // Ejemplo de canal IPC para leer archivos DOCX utilizando Mammoth.js.
-  ipcMain.handle('read-docx', async (event, filePath: string) => {
+  // ipcMain.handle('read-docx', async (event, filePath: string) => {
+  //   try {
+  //     const result = await mammoth.convertToHtml({ path: filePath })
+  //     return result.value
+  //   } catch (error) {
+  //     console.error('Error al leer archivo DOCX:', error)
+  //     throw error
+  //   }
+  // })
+
+  ipcMain.handle('read-text-file', async (event, filePath: string) => {
+    console.log('read-text-file called with path:', filePath)
     try {
-      const result = await mammoth.convertToHtml({ path: filePath })
-      return result.value
+      const data = await fs.readFile(filePath, 'utf-8')
+      console.log('File content:', data)
+      return data
     } catch (error) {
-      console.error('Error al leer archivo DOCX:', error)
+      console.error('Error reading file:', error)
       throw error
     }
+  })
+
+  ipcMain.handle('get-versions', () => {
+    return process.versions
+  })
+
+  ipcMain.handle('get-current-date', () => {
+    const currentDate = new Date().toLocaleDateString()
+    return currentDate
   })
 
   createWindow()

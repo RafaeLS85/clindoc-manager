@@ -1,23 +1,17 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 
-const DocumentSelector: React.FC = () => {
+const DocumentViewer: React.FC = () => {
   const [fileTitle, setFileTitle] = useState<string>('')
-  const [docHtml, setDocHtml] = useState<string>('')
+  const [fileContent, setFileContent] = useState<string>('')
   const [loading, setLoading] = useState<boolean>(false)
   const [error, setError] = useState<string>('')
 
-  useEffect(() => {
-    console.log('docHtml updated:', { docHtml })
-  }, [docHtml])
-
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     setError('')
-    setDocHtml('')
+    setFileContent('')
 
-    // Selecciona el primer archivo (si existe)
     const file = event.target.files && event.target.files[0]
     if (file && (file as any).path) {
-      // Extraemos la ruta y el nombre (sin extensión)
       const filePath: string = (file as any).path
       const title = file.name.replace(/\.[^/.]+$/, '')
       setFileTitle(title)
@@ -27,24 +21,22 @@ const DocumentSelector: React.FC = () => {
 
       try {
         setLoading(true)
-        // Llama a la API readDocx, la cual retorna una promesa con el contenido HTML del archivo DOCX
-        const content: string = await window.api.readDocx(filePath)
-        setDocHtml(content)
+        const content: string = await window.api.readTextFile(filePath)
+        console.log('Content received from readTextFile:', content)
+        setFileContent(content)
       } catch (err: any) {
-        console.error('Error reading DOCX:', err)
-        setError('Failed to read DOCX file.')
+        console.error('Error reading file:', err)
+        setError('Failed to read file.')
       } finally {
         setLoading(false)
       }
     }
   }
 
-  console.log({ docHtml })
-
   return (
     <div style={{ padding: '1rem' }}>
       <h2>Select a Document</h2>
-      <input type="file" accept=".docx" onChange={handleFileChange} />
+      <input type="file" accept=".txt" onChange={handleFileChange} />
 
       {fileTitle && (
         <div style={{ marginTop: '1rem' }}>
@@ -56,17 +48,14 @@ const DocumentSelector: React.FC = () => {
       {loading && <p>Loading file content...</p>}
       {error && <p style={{ color: 'red' }}>{error}</p>}
 
-      {docHtml && (
+      {fileContent && (
         <div style={{ marginTop: '1rem' }}>
           <h3>File Content:</h3>
-
-          {/* La propiedad dangerouslySetInnerHTML se usa aquí para insertar el HTML.
-              Asegúrate que el HTML sea seguro, por ejemplo, si Mammoth.js ya lo sanitiza */}
-          <div dangerouslySetInnerHTML={{ __html: docHtml }} />
+          <pre>{fileContent}</pre>
         </div>
       )}
     </div>
   )
 }
 
-export default DocumentSelector
+export default DocumentViewer

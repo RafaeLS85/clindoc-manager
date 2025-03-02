@@ -1,28 +1,29 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import { electronAPI } from '@electron-toolkit/preload'
-import { API } from '../types/api'
+import type { API } from '../types/api'
 
-// Custom APIs for renderer, ahora con readDocx
 const api: API = {
   readDocx: (filePath: string): Promise<string> => {
-    // ipcRenderer.invoke devuelve una Promise, la cual se resolverá con la respuesta
-    return ipcRenderer.invoke('read-docx', filePath)
+    console.log('Invoking read-docx from renderer with path:', filePath)
+    return ipcRenderer.invoke('read-docx', filePath) as Promise<string>
+  },
+  readTextFile: (filePath: string): Promise<string> => {
+    console.log('Invoking read-text-file from renderer with path:', filePath)
+    return ipcRenderer.invoke('read-text-file', filePath) as Promise<string>
+  },
+  getVersions: (): Promise<{ chrome: string; node: string; electron: string }> => {
+    return ipcRenderer.invoke('get-versions')
+  },
+  getCurrentDate: (): Promise<string> => {
+    return ipcRenderer.invoke('get-current-date')
   }
 }
 
-// Use `contextBridge` APIs to expose Electron APIs to
-// renderer only if context isolation is enabled, otherwise
-// just add to the DOM global.
 if (process.contextIsolated) {
   try {
-    contextBridge.exposeInMainWorld('electron', electronAPI)
     contextBridge.exposeInMainWorld('api', api)
   } catch (error) {
-    console.error(error)
+    console.error('Error exposing API:', error)
   }
 } else {
-  // @ts-ignore (define in dts)
-  window.electron = electronAPI
-  // @ts-ignore (define in dts)
-  window.api = api
+  ;(window as any).api = api
 }

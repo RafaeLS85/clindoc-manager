@@ -1,7 +1,23 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+
+interface Versions {
+  chrome: string
+  node: string
+  electron: string
+}
 
 function Versions(): JSX.Element {
-  const [versions] = useState(window.electron.process.versions)
+  const [versions, setVersions] = useState<Versions | null>(null)
+
+  useEffect(() => {
+    window.api.getVersions().then((versions) => {
+      setVersions(versions)
+    })
+  }, [])
+
+  if (!versions) {
+    return <div>Loading versions...</div>
+  }
 
   return (
     <ul className="versions">
