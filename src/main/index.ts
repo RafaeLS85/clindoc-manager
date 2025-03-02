@@ -2,11 +2,10 @@ import { app, shell, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
-// import mammoth from 'mammoth'
-import fs from 'fs/promises'
+import { setupFileHandlers } from './modules/files'
+import { setupSystemHandlers } from './modules/system'
 
 function createWindow(): void {
-  // Create the browser window.
   const mainWindow = new BrowserWindow({
     width: 900,
     height: 670,
@@ -39,9 +38,6 @@ function createWindow(): void {
   }
 }
 
-// This method will be called when Electron has finished
-// initialization and is ready to create browser windows.
-// Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
   // Set app user model id for windows
   electronApp.setAppUserModelId('com.electron')
@@ -54,40 +50,10 @@ app.whenReady().then(() => {
   })
 
   // IPC test
-  //Este método registra un manejador para eventos enviados desde el proceso renderer mediante ipcRenderer.send().
-  ipcMain.on('ping', () => console.log('pong'))
+  // ipcMain.on('ping', () => console.log('pong'))
 
-  // Ejemplo de canal IPC para leer archivos DOCX utilizando Mammoth.js.
-  // ipcMain.handle('read-docx', async (event, filePath: string) => {
-  //   try {
-  //     const result = await mammoth.convertToHtml({ path: filePath })
-  //     return result.value
-  //   } catch (error) {
-  //     console.error('Error al leer archivo DOCX:', error)
-  //     throw error
-  //   }
-  // })
-
-  ipcMain.handle('read-text-file', async (event, filePath: string) => {
-    console.log('read-text-file called with path:', filePath)
-    try {
-      const data = await fs.readFile(filePath, 'utf-8')
-      console.log('File content:', data)
-      return data
-    } catch (error) {
-      console.error('Error reading file:', error)
-      throw error
-    }
-  })
-
-  ipcMain.handle('get-versions', () => {
-    return process.versions
-  })
-
-  ipcMain.handle('get-current-date', () => {
-    const currentDate = new Date().toLocaleDateString()
-    return currentDate
-  })
+  setupFileHandlers(ipcMain)
+  setupSystemHandlers(ipcMain)
 
   createWindow()
 
@@ -106,6 +72,3 @@ app.on('window-all-closed', () => {
     app.quit()
   }
 })
-
-// In this file you can include the rest of your app's specific main process
-// code. You can also put them in separate files and require them here.
