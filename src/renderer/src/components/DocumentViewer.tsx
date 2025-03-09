@@ -6,8 +6,11 @@ const DocumentViewer: React.FC = () => {
   const [fileContent, setFileContent] = useState<string>('')
   const [loading, setLoading] = useState<boolean>(false)
   const [error, setError] = useState<string>('')
-
+  const [editableContent, setEditableContent] = useState<string>('')
   const txtFilter: FileFilter[] = [{ name: 'Text Files', extensions: ['txt'] }]
+  const [saveError, setSaveError] = useState<string | null>(null)
+  const [saving, setSaving] = useState<boolean>(false)
+  const [filePath, setFilePath] = useState<string | null>(null) // Now in the state
 
   const handleFileSelect = async (): Promise<void> => {
     setError('')
@@ -15,24 +18,22 @@ const DocumentViewer: React.FC = () => {
     setLoading(true)
 
     try {
-      const filePath = await window.api.openFileDialog(txtFilter)
+      const filePathFromDialog = await window.api.openFileDialog(txtFilter) // Rename the variable to avoid confusion
 
-      if (filePath) {
+      if (filePathFromDialog) {
+        setFilePath(filePathFromDialog)
+
         const file = {
-          path: filePath,
-          name: filePath.split('\\').pop() as string
+          path: filePathFromDialog,
+          name: filePathFromDialog.split('\\').pop() as string
         }
 
         const title = file.name.replace(/\.[^/.]+$/, '')
         setFileTitle(title)
 
-        console.log('File path:', filePath)
-        console.log('File title:', title)
-
-        console.log('1) Calling readTextFile with filePath: ', filePath)
-        const content: string = await window.api.readTextFile(filePath)
-        console.log('2) Content received from readTextFile:', content)
+        const content: string = await window.api.readTextFile(filePathFromDialog)
         setFileContent(content)
+        setEditableContent(content)
       } else {
         console.log('File selection canceled.')
         setLoading(false)
@@ -43,6 +44,30 @@ const DocumentViewer: React.FC = () => {
     } finally {
       if (!error) setLoading(false)
     }
+  }
+
+  const handleSave = async (): Promise<void> => {
+    if (!filePath) {
+      setSaveError('No file selected')
+      return
+    }
+    setSaving(true)
+    setSaveError(null)
+
+    try {
+      await window.api.saveTextFile(filePath, editableContent)
+      console.log('File saved successfully')
+      setFileContent(editableContent)
+    } catch (err: unknown) {
+      console.error('Error saving file:', err)
+      setSaveError(`Failed to save file. Error: ${err}`)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleEditableContentChange = (event: React.ChangeEvent<HTMLTextAreaElement>): void => {
+    setEditableContent(event.target.value)
   }
 
   return (
@@ -64,7 +89,15 @@ const DocumentViewer: React.FC = () => {
       {fileContent && (
         <div style={{ marginTop: '1rem' }}>
           <h3>File Content:</h3>
-          <pre>{fileContent}</pre>
+          <textarea
+            value={editableContent}
+            onChange={handleEditableContentChange}
+            style={{ width: '100%', minHeight: '200px' }}
+          />
+          <button onClick={handleSave} disabled={saving}>
+            {saving ? 'Saving...' : 'Save'}
+          </button>
+          {saveError && <p style={{ color: 'red' }}>{saveError}</p>}
         </div>
       )}
     </div>

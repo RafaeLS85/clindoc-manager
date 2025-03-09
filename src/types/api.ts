@@ -8,4 +8,5 @@ export interface API {
   getVersions: () => Promise<{ chrome: string; node: string; electron: string }>
   getCurrentDate: () => Promise<string>
   openFileDialog: (filters?: FileFilter[]) => Promise<string | null>
+  saveTextFile: (filePath: string, content: string) => Promise<void>
 }

@@ -4,6 +4,16 @@ import mammoth from 'mammoth'
 import { FileFilter } from '../../types/api'
 
 export function setupFileHandlers(ipcMain: IpcMain): void {
+  ipcMain.handle('save-text-file', async (_event, filePath: string, content: string) => {
+    console.log('save-text-file called on main process:', filePath)
+    try {
+      await fs.writeFile(filePath, content, 'utf-8')
+    } catch (err) {
+      console.error('Error saving text file:', err)
+      throw err
+    }
+  })
+
   ipcMain.handle('open-file-dialog', async (_event, filters?: FileFilter[]) => {
     // Use provided filters or default to all files
     const usedFilters: FileFilter[] = filters ?? [{ name: 'All Files', extensions: ['*'] }]
@@ -19,11 +29,11 @@ export function setupFileHandlers(ipcMain: IpcMain): void {
       return filePaths[0]
     }
   })
+
   ipcMain.handle('read-text-file', async (_event, filePath: string) => {
-    console.log('4) read-text-file called with path:', filePath)
+    console.log('read-text-file called on main process:', filePath)
     try {
       const data = await fs.readFile(filePath, 'utf-8')
-      console.log('File content:', data)
       return data
     } catch (error) {
       console.error('Error reading file:', error)
