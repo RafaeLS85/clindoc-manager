@@ -1,5 +1,7 @@
 import Versions from './components/Versions'
 import DateViewer from './components/DateViewer'
+import DocumentSelector from './components/DocumentSelector'
+import DocumentViewer from './components/DocumentViewer'
 
 function App(): JSX.Element {
   return (
@@ -7,27 +9,10 @@ function App(): JSX.Element {
       <h1>¡Hola, Mundo!</h1>
       <Versions />
       <DateViewer />
+      <DocumentSelector />
+      <DocumentViewer />
     </div>
   )
 }
 
 export default App
-
-// import Versions from './components/Versions'
-// // import DocumentViewer from './components/DocumentViewer'
-// // import DocumentSelector from './components/DocumentSelector'
-// import DocumentViewer from './components/DocumentViewer'
-
-// function App(): JSX.Element {
-//   return (
-//     <section>
-//       {/* <DocumentSelector /> */}
-//       {/* <DocumentViewer /> */}
-//       <h1>Electron + React + Vite + Typescript</h1>
-
-//       <Versions />
-//     </section>
-//   )
-// }
-
-// export default App

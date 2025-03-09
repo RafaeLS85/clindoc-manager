@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import type { API } from '../types/api'
+import type { API, FileFilter } from '../types/api'
 
 const api: API = {
   readDocx: (filePath: string): Promise<string> => {
@@ -7,7 +7,7 @@ const api: API = {
     return ipcRenderer.invoke('read-docx', filePath) as Promise<string>
   },
   readTextFile: (filePath: string): Promise<string> => {
-    console.log('Invoking read-text-file from renderer with path:', filePath)
+    console.log('3) Invoking read-text-file from renderer with path:', filePath)
     return ipcRenderer.invoke('read-text-file', filePath) as Promise<string>
   },
   getVersions: (): Promise<{ chrome: string; node: string; electron: string }> => {
@@ -15,7 +15,8 @@ const api: API = {
   },
   getCurrentDate: (): Promise<string> => {
     return ipcRenderer.invoke('get-current-date')
-  }
+  },
+  openFileDialog: (filters?: FileFilter[]) => ipcRenderer.invoke('open-file-dialog', filters)
 }
 
 if (process.contextIsolated) {

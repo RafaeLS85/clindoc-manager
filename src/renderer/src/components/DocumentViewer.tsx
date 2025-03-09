@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { FileFilter } from 'src/types/api'
 
 const DocumentViewer: React.FC = () => {
   const [fileTitle, setFileTitle] = useState<string>('')
@@ -6,37 +7,49 @@ const DocumentViewer: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false)
   const [error, setError] = useState<string>('')
 
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const txtFilter: FileFilter[] = [{ name: 'Text Files', extensions: ['txt'] }]
+
+  const handleFileSelect = async (): Promise<void> => {
     setError('')
     setFileContent('')
+    setLoading(true)
 
-    const file = event.target.files && event.target.files[0]
-    if (file && (file as any).path) {
-      const filePath: string = (file as any).path
-      const title = file.name.replace(/\.[^/.]+$/, '')
-      setFileTitle(title)
+    try {
+      const filePath = await window.api.openFileDialog(txtFilter)
 
-      console.log('File path:', filePath)
-      console.log('File title:', title)
+      if (filePath) {
+        const file = {
+          path: filePath,
+          name: filePath.split('\\').pop() as string
+        }
 
-      try {
-        setLoading(true)
+        const title = file.name.replace(/\.[^/.]+$/, '')
+        setFileTitle(title)
+
+        console.log('File path:', filePath)
+        console.log('File title:', title)
+
+        console.log('1) Calling readTextFile with filePath: ', filePath)
         const content: string = await window.api.readTextFile(filePath)
-        console.log('Content received from readTextFile:', content)
+        console.log('2) Content received from readTextFile:', content)
         setFileContent(content)
-      } catch (err: any) {
-        console.error('Error reading file:', err)
-        setError('Failed to read file.')
-      } finally {
+      } else {
+        console.log('File selection canceled.')
         setLoading(false)
       }
+    } catch (err: unknown) {
+      console.error('Error reading file:', err)
+      setError('Failed to read file.')
+    } finally {
+      if (!error) setLoading(false)
     }
   }
 
   return (
     <div style={{ padding: '1rem' }}>
-      <h2>Select a Document</h2>
-      <input type="file" accept=".txt" onChange={handleFileChange} />
+      <h2>DocumentViewer Component</h2>
+      {/*<input type="file" accept=".txt" onChange={handleFileChange} />*/}
+      <button onClick={handleFileSelect}>Open File</button>
 
       {fileTitle && (
         <div style={{ marginTop: '1rem' }}>

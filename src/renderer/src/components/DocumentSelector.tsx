@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { FileFilter } from 'src/types/api'
 
 const DocumentSelector: React.FC = () => {
   const [fileTitle, setFileTitle] = useState<string>('')
@@ -6,36 +7,44 @@ const DocumentSelector: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false)
   const [error, setError] = useState<string>('')
 
+  const docxFilter: FileFilter[] = [{ name: 'Word Files', extensions: ['docx', 'doc'] }]
+
   useEffect(() => {
     console.log('docHtml updated:', { docHtml })
   }, [docHtml])
 
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = async (): Promise<void> => {
     setError('')
     setDocHtml('')
+    setLoading(true)
 
-    // Selecciona el primer archivo (si existe)
-    const file = event.target.files && event.target.files[0]
-    if (file && (file as any).path) {
-      // Extraemos la ruta y el nombre (sin extensión)
-      const filePath: string = (file as any).path
-      const title = file.name.replace(/\.[^/.]+$/, '')
-      setFileTitle(title)
+    try {
+      const filePath = await window.api.openFileDialog(docxFilter)
 
-      console.log('File path:', filePath)
-      console.log('File title:', title)
+      if (filePath) {
+        const file = {
+          path: filePath,
+          name: filePath.split('\\').pop() as string
+        }
 
-      try {
-        setLoading(true)
+        const title = file.name.replace(/\.[^/.]+$/, '')
+        setFileTitle(title)
+
+        console.log('File path:', filePath)
+        console.log('File title:', title)
+
         // Llama a la API readDocx, la cual retorna una promesa con el contenido HTML del archivo DOCX
         const content: string = await window.api.readDocx(filePath)
         setDocHtml(content)
-      } catch (err: any) {
-        console.error('Error reading DOCX:', err)
-        setError('Failed to read DOCX file.')
-      } finally {
+      } else {
+        console.log('File selection canceled.')
         setLoading(false)
       }
+    } catch (err: unknown) {
+      console.error('Error reading DOCX:', err)
+      setError('Failed to read DOCX file.')
+    } finally {
+      if (!error) setLoading(false)
     }
   }
 
@@ -43,8 +52,9 @@ const DocumentSelector: React.FC = () => {
 
   return (
     <div style={{ padding: '1rem' }}>
-      <h2>Select a Document</h2>
-      <input type="file" accept=".docx" onChange={handleFileChange} />
+      <h2>DocumentSelector Component</h2>
+      {/*<input type="file" accept=".docx" onChange={handleFileChange} />*/}
+      <button onClick={handleFileSelect}>Open File</button>
 
       {fileTitle && (
         <div style={{ marginTop: '1rem' }}>
