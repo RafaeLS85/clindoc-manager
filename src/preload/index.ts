@@ -16,7 +16,13 @@ const api: API = {
   getCurrentDate: (): Promise<string> => {
     return ipcRenderer.invoke('get-current-date')
   },
-  openFileDialog: (filters?: FileFilter[]) => ipcRenderer.invoke('open-file-dialog', filters)
+  openFileDialog: (filters?: FileFilter[]) => {
+    return ipcRenderer.invoke('open-file-dialog', filters)
+  },
+  saveTextFile: (filePath: string, content: string) => {
+    console.log('Invoking save-text-file from renderer with path:', filePath)
+    return ipcRenderer.invoke('save-text-file', filePath, content)
+  }
 }
 
 if (process.contextIsolated) {
