@@ -1,6 +1,3 @@
-import Versions from './components/Versions'
-import DateViewer from './components/DateViewer'
-import DocumentSelector from './components/DocumentSelector'
 import DocumentViewer from './components/DocumentViewer'
 
 function App(): JSX.Element {
