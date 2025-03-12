@@ -1,16 +1,16 @@
 import React, { useEffect, useState } from 'react'
-import { FileFilter } from 'src/types/api'
 
-const DocumentViewer: React.FC = () => {
+interface DocumentViewerProps {
+  filePath: string | null
+}
+const DocumentViewer: React.FC<DocumentViewerProps> = ({ filePath }) => {
   const [fileTitle, setFileTitle] = useState<string>('')
   const [initialFileContent, setInitialFileContent] = useState<string>('')
   const [loading, setLoading] = useState<boolean>(false)
   const [error, setError] = useState<string>('')
   const [editableContent, setEditableContent] = useState<string>('')
-  const txtFilter: FileFilter[] = [{ name: 'Text Files', extensions: ['txt'] }]
   const [saveError, setSaveError] = useState<string | null>(null)
   const [saving, setSaving] = useState<boolean>(false)
-  const [filePath, setFilePath] = useState<string | null>(null)
   const [isEditing, setIsEditing] = useState(false)
 
   useEffect(() => {
@@ -18,42 +18,29 @@ const DocumentViewer: React.FC = () => {
     console.log('El contenido ha cambiado')
   }, [editableContent, initialFileContent])
 
-  const handleFileSelect = async (): Promise<void> => {
-    setError('')
-    setInitialFileContent('')
-    setLoading(true)
-    setEditableContent('')
-    setIsEditing(false)
-    setFilePath(null)
-
-    try {
-      const filePathFromDialog = await window.api.openFileDialog(txtFilter)
-
-      if (filePathFromDialog) {
-        setFilePath(filePathFromDialog)
-
-        const file = {
-          path: filePathFromDialog,
-          name: filePathFromDialog.split('\\').pop() as string
+  useEffect(() => {
+    const loadFile = async (): Promise<void> => {
+      if (filePath) {
+        try {
+          const content = await window.api.readTextFile(filePath)
+          setInitialFileContent(content)
+          setEditableContent(content)
+          setFileTitle(
+            filePath
+              .split('\\')
+              .pop()
+              ?.replace(/\.[^/.]+$/, '') || ''
+          ) // Extract file name from path
+        } catch (error) {
+          console.error('Error reading selected file:', error)
+          setInitialFileContent('')
+          setEditableContent('')
         }
-
-        const title = file.name.replace(/\.[^/.]+$/, '')
-        setFileTitle(title)
-
-        const content: string = await window.api.readTextFile(filePathFromDialog)
-        setInitialFileContent(content)
-        setEditableContent(content)
-      } else {
-        console.log('File selection canceled.')
-        setLoading(false)
       }
-    } catch (err: unknown) {
-      console.error('Error reading file:', err)
-      setError('Failed to read file.')
-    } finally {
-      if (!error) setLoading(false)
     }
-  }
+
+    loadFile()
+  }, [filePath])
 
   const handleSave = async (): Promise<void> => {
     if (!filePath) {
@@ -62,7 +49,6 @@ const DocumentViewer: React.FC = () => {
     }
     setSaving(true)
     setSaveError(null)
-
     try {
       await window.api.saveTextFile(filePath, editableContent)
       console.log('File saved successfully')
@@ -89,7 +75,8 @@ const DocumentViewer: React.FC = () => {
   return (
     <div style={{ padding: '1rem' }}>
       <h2>DocumentViewer Component</h2>
-      <button onClick={handleFileSelect}>Open File</button>
+      {/* REMOVE THIS BUTTON */}
+      {/* <button onClick={handleFileSelect}>Open File</button> */}
 
       {fileTitle && (
         <div style={{ marginTop: '1rem' }}>

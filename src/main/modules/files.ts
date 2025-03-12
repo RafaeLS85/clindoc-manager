@@ -1,53 +1,34 @@
-import { dialog, type IpcMain } from 'electron'
-import fs from 'fs/promises'
-import mammoth from 'mammoth'
+import type { IpcMain } from 'electron'
+import { dialog } from 'electron'
+import * as fs from 'fs'
+// import * as path from 'path'
 import { FileFilter } from '../../types/api'
 
+const openFileDialog = async (filters?: FileFilter[]): Promise<string | undefined> => {
+  const result = await dialog.showOpenDialog({
+    properties: ['openFile'],
+    filters
+  })
+
+  return result.canceled ? undefined : result.filePaths[0]
+}
+const readTextFile = async (filePath: string): Promise<string> => {
+  return fs.promises.readFile(filePath, 'utf-8')
+}
+
+const saveTextFile = async (filePath: string, content: string): Promise<void> => {
+  await fs.promises.writeFile(filePath, content, 'utf-8')
+}
+const readDirectory = async (directoryPath: string): Promise<string[]> => {
+  const files = await fs.promises.readdir(directoryPath)
+  return files
+}
+
 export function setupFileHandlers(ipcMain: IpcMain): void {
-  ipcMain.handle('save-text-file', async (_event, filePath: string, content: string) => {
-    console.log('save-text-file called on main process:', filePath)
-    try {
-      await fs.writeFile(filePath, content, 'utf-8')
-    } catch (err) {
-      console.error('Error saving text file:', err)
-      throw err
-    }
-  })
-
-  ipcMain.handle('open-file-dialog', async (_event, filters?: FileFilter[]) => {
-    // Use provided filters or default to all files
-    const usedFilters: FileFilter[] = filters ?? [{ name: 'All Files', extensions: ['*'] }]
-
-    const { canceled, filePaths } = await dialog.showOpenDialog({
-      properties: ['openFile'],
-      filters: usedFilters // Use the provided filters
-    })
-
-    if (canceled) {
-      return null
-    } else {
-      return filePaths[0]
-    }
-  })
-
-  ipcMain.handle('read-text-file', async (_event, filePath: string) => {
-    console.log('read-text-file called on main process:', filePath)
-    try {
-      const data = await fs.readFile(filePath, 'utf-8')
-      return data
-    } catch (error) {
-      console.error('Error reading file:', error)
-      throw error
-    }
-  })
-
-  ipcMain.handle('read-docx', async (_event, filePath: string) => {
-    try {
-      const result = await mammoth.convertToHtml({ path: filePath })
-      return result.value
-    } catch (error) {
-      console.error('Error al leer archivo DOCX:', error)
-      throw error
-    }
-  })
+  ipcMain.handle('files:open-file-dialog', (_, fileFilter) => openFileDialog(fileFilter))
+  ipcMain.handle('files:read-text-file', (_, filePath: string) => readTextFile(filePath))
+  ipcMain.handle('files:save-text-file', (_, filePath: string, content: string) =>
+    saveTextFile(filePath, content)
+  )
+  ipcMain.handle('files:read-directory', (_, directoryPath: string) => readDirectory(directoryPath))
 }
