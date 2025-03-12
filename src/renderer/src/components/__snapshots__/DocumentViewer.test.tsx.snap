@@ -1,0 +1,16 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`DocumentViewer > matches snapshot 1`] = `
+<DocumentFragment>
+  <div
+    style="padding: 1rem;"
+  >
+    <h2>
+      DocumentViewer Component
+    </h2>
+    <button>
+      Open File
+    </button>
+  </div>
+</DocumentFragment>
+`;

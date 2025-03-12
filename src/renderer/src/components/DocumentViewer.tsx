@@ -1,50 +1,46 @@
-import React, { useState } from 'react'
-import { FileFilter } from 'src/types/api'
+import React, { useEffect, useState } from 'react'
 
-const DocumentViewer: React.FC = () => {
+interface DocumentViewerProps {
+  filePath: string | null
+}
+const DocumentViewer: React.FC<DocumentViewerProps> = ({ filePath }) => {
   const [fileTitle, setFileTitle] = useState<string>('')
-  const [fileContent, setFileContent] = useState<string>('')
+  const [initialFileContent, setInitialFileContent] = useState<string>('')
   const [loading, setLoading] = useState<boolean>(false)
   const [error, setError] = useState<string>('')
   const [editableContent, setEditableContent] = useState<string>('')
-  const txtFilter: FileFilter[] = [{ name: 'Text Files', extensions: ['txt'] }]
   const [saveError, setSaveError] = useState<string | null>(null)
   const [saving, setSaving] = useState<boolean>(false)
-  const [filePath, setFilePath] = useState<string | null>(null) // Now in the state
+  const [isEditing, setIsEditing] = useState(false)
 
-  const handleFileSelect = async (): Promise<void> => {
-    setError('')
-    setFileContent('')
-    setLoading(true)
+  useEffect(() => {
+    setIsEditing(editableContent !== initialFileContent)
+    console.log('El contenido ha cambiado')
+  }, [editableContent, initialFileContent])
 
-    try {
-      const filePathFromDialog = await window.api.openFileDialog(txtFilter) // Rename the variable to avoid confusion
-
-      if (filePathFromDialog) {
-        setFilePath(filePathFromDialog)
-
-        const file = {
-          path: filePathFromDialog,
-          name: filePathFromDialog.split('\\').pop() as string
+  useEffect(() => {
+    const loadFile = async (): Promise<void> => {
+      if (filePath) {
+        try {
+          const content = await window.api.readTextFile(filePath)
+          setInitialFileContent(content)
+          setEditableContent(content)
+          setFileTitle(
+            filePath
+              .split('\\')
+              .pop()
+              ?.replace(/\.[^/.]+$/, '') || ''
+          ) // Extract file name from path
+        } catch (error) {
+          console.error('Error reading selected file:', error)
+          setInitialFileContent('')
+          setEditableContent('')
         }
-
-        const title = file.name.replace(/\.[^/.]+$/, '')
-        setFileTitle(title)
-
-        const content: string = await window.api.readTextFile(filePathFromDialog)
-        setFileContent(content)
-        setEditableContent(content)
-      } else {
-        console.log('File selection canceled.')
-        setLoading(false)
       }
-    } catch (err: unknown) {
-      console.error('Error reading file:', err)
-      setError('Failed to read file.')
-    } finally {
-      if (!error) setLoading(false)
     }
-  }
+
+    loadFile()
+  }, [filePath])
 
   const handleSave = async (): Promise<void> => {
     if (!filePath) {
@@ -53,11 +49,11 @@ const DocumentViewer: React.FC = () => {
     }
     setSaving(true)
     setSaveError(null)
-
     try {
       await window.api.saveTextFile(filePath, editableContent)
       console.log('File saved successfully')
-      setFileContent(editableContent)
+      setInitialFileContent(editableContent)
+      setIsEditing(false)
     } catch (err: unknown) {
       console.error('Error saving file:', err)
       setSaveError(`Failed to save file. Error: ${err}`)
@@ -70,11 +66,17 @@ const DocumentViewer: React.FC = () => {
     setEditableContent(event.target.value)
   }
 
+  const handleDiscardChanges = (): void => {
+    setEditableContent(initialFileContent)
+    setIsEditing(false)
+    console.log('Changes Discarded')
+  }
+
   return (
     <div style={{ padding: '1rem' }}>
       <h2>DocumentViewer Component</h2>
-      {/*<input type="file" accept=".txt" onChange={handleFileChange} />*/}
-      <button onClick={handleFileSelect}>Open File</button>
+      {/* REMOVE THIS BUTTON */}
+      {/* <button onClick={handleFileSelect}>Open File</button> */}
 
       {fileTitle && (
         <div style={{ marginTop: '1rem' }}>
@@ -86,7 +88,7 @@ const DocumentViewer: React.FC = () => {
       {loading && <p>Loading file content...</p>}
       {error && <p style={{ color: 'red' }}>{error}</p>}
 
-      {fileContent && (
+      {initialFileContent && (
         <div style={{ marginTop: '1rem' }}>
           <h3>File Content:</h3>
           <textarea
@@ -94,9 +96,14 @@ const DocumentViewer: React.FC = () => {
             onChange={handleEditableContentChange}
             style={{ width: '100%', minHeight: '200px' }}
           />
-          <button onClick={handleSave} disabled={saving}>
-            {saving ? 'Saving...' : 'Save'}
-          </button>
+          <div style={{ marginTop: '1rem' }}>
+            <button onClick={handleSave} disabled={saving || !isEditing}>
+              {saving ? 'Saving...' : 'Save'}
+            </button>
+            <button onClick={handleDiscardChanges} disabled={!isEditing}>
+              Discard Changes
+            </button>
+          </div>
           {saveError && <p style={{ color: 'red' }}>{saveError}</p>}
         </div>
       )}
