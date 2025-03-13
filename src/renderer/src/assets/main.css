@@ -3,9 +3,10 @@
 body {
   display: flex;
   align-items: center;
-  justify-content: center;
+  /* justify-content: center; */
   overflow: hidden;
-  background-image: url('./wavy-lines.svg');
+  padding: 10px;
+  /* background-image: url('./wavy-lines.svg'); */
   background-size: cover;
   user-select: none;
 }

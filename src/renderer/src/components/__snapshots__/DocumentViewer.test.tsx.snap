@@ -8,9 +8,6 @@ exports[`DocumentViewer > matches snapshot 1`] = `
     <h2>
       DocumentViewer Component
     </h2>
-    <button>
-      Open File
-    </button>
   </div>
 </DocumentFragment>
 `;

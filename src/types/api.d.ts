@@ -17,6 +17,7 @@ declare global {
       stopWatching: () => void
       onDirectoryChanged: (callback: (event: any, path: string) => void) => void
       removeDirectoryChangedListener: (callback: (event: any, path: string) => void) => void
+      getDefaultDirectory: () => Promise<string>
     }
   }
 }

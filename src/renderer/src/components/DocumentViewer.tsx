@@ -3,11 +3,12 @@ import React, { useEffect, useState } from 'react'
 interface DocumentViewerProps {
   filePath: string | null
 }
+
 const DocumentViewer: React.FC<DocumentViewerProps> = ({ filePath }) => {
   const [fileTitle, setFileTitle] = useState<string>('')
   const [initialFileContent, setInitialFileContent] = useState<string>('')
-  const [loading, setLoading] = useState<boolean>(false)
-  const [error, setError] = useState<string>('')
+  const [loading, setLoading] = useState<boolean>(false) // Use this for loading state
+  const [error, setError] = useState<string>('') // Use this for errors
   const [editableContent, setEditableContent] = useState<string>('')
   const [saveError, setSaveError] = useState<string | null>(null)
   const [saving, setSaving] = useState<boolean>(false)
@@ -21,6 +22,8 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({ filePath }) => {
   useEffect(() => {
     const loadFile = async (): Promise<void> => {
       if (filePath) {
+        setLoading(true) // Start loading
+        setError('') // Clear any previous errors
         try {
           const content = await window.api.readTextFile(filePath)
           setInitialFileContent(content)
@@ -31,11 +34,19 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({ filePath }) => {
               .pop()
               ?.replace(/\.[^/.]+$/, '') || ''
           ) // Extract file name from path
-        } catch (error) {
-          console.error('Error reading selected file:', error)
+        } catch (err: unknown) {
+          console.error('Error reading selected file:', err)
+          setError(`Error reading file: ${err}`) // Set the error message
           setInitialFileContent('')
           setEditableContent('')
+        } finally {
+          setLoading(false) // Stop loading, whether successful or not
         }
+      } else {
+        // If no file path is selected, clear the content and title.
+        setInitialFileContent('')
+        setEditableContent('')
+        setFileTitle('')
       }
     }
 
@@ -75,8 +86,12 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({ filePath }) => {
   return (
     <div style={{ padding: '1rem' }}>
       <h2>DocumentViewer Component</h2>
-      {/* REMOVE THIS BUTTON */}
-      {/* <button onClick={handleFileSelect}>Open File</button> */}
+
+      {/* Show loading if loading */}
+      {loading && <p>Loading file content...</p>}
+
+      {/* Show error if there is an error */}
+      {error && <p style={{ color: 'red' }}>{error}</p>}
 
       {fileTitle && (
         <div style={{ marginTop: '1rem' }}>
@@ -85,10 +100,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({ filePath }) => {
         </div>
       )}
 
-      {loading && <p>Loading file content...</p>}
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-
-      {initialFileContent && (
+      {initialFileContent && !loading && !error && (
         <div style={{ marginTop: '1rem' }}>
           <h3>File Content:</h3>
           <textarea

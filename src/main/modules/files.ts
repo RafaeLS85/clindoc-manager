@@ -1,7 +1,7 @@
 import type { IpcMain } from 'electron'
-import { dialog } from 'electron'
+import { dialog, app } from 'electron'
 import * as fs from 'fs'
-// import * as path from 'path'
+import * as path from 'path'
 import { FileFilter } from '../../types/api'
 
 const openFileDialog = async (filters?: FileFilter[]): Promise<string | undefined> => {
@@ -24,6 +24,35 @@ const readDirectory = async (directoryPath: string): Promise<string[]> => {
   return files
 }
 
+const getDocumentsDirectory = (): string | null => {
+  try {
+    const documentsPath = app.getPath('documents')
+    return documentsPath
+  } catch (error) {
+    console.error('Error getting documents directory:', error)
+    return null
+  }
+}
+
+const createAppDataDirectory = (): string => {
+  const appDataPath = path.join(app.getPath('appData'), app.getName())
+  if (!fs.existsSync(appDataPath)) {
+    fs.mkdirSync(appDataPath, { recursive: true })
+  }
+  return appDataPath
+}
+
+const getSuitableDefaultDirectory = (): string | null => {
+  const documentsDir = getDocumentsDirectory()
+  if (documentsDir) {
+    if (!fs.existsSync(documentsDir)) {
+      return createAppDataDirectory()
+    }
+    return documentsDir
+  }
+  return createAppDataDirectory()
+}
+
 export function setupFileHandlers(ipcMain: IpcMain): void {
   ipcMain.handle('files:open-file-dialog', (_, fileFilter) => openFileDialog(fileFilter))
   ipcMain.handle('files:read-text-file', (_, filePath: string) => readTextFile(filePath))
@@ -31,4 +60,7 @@ export function setupFileHandlers(ipcMain: IpcMain): void {
     saveTextFile(filePath, content)
   )
   ipcMain.handle('files:read-directory', (_, directoryPath: string) => readDirectory(directoryPath))
+  ipcMain.handle('system:get-default-directory', () => {
+    return getSuitableDefaultDirectory()
+  })
 }

@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react'
 
 interface SidebarProps {
-  directoryPath: string
+  directoryPath: string | null
   onFileSelect: (filePath: string) => void
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ directoryPath, onFileSelect }) => {
   const [files, setFiles] = useState<string[]>([])
+  const [previousPath, setPreviousPath] = useState<string | null>(null)
 
   useEffect(() => {
     const loadFiles = async (): Promise<void> => {
@@ -14,21 +15,27 @@ const Sidebar: React.FC<SidebarProps> = ({ directoryPath, onFileSelect }) => {
         try {
           const fileList = await window.api.readDirectory(directoryPath)
           setFiles(fileList)
+          setPreviousPath(directoryPath)
         } catch (error) {
           console.error('Error reading directory:', error)
           setFiles([])
         }
       } else {
-        setFiles([])
+        if (previousPath !== null) {
+          setFiles([])
+          setPreviousPath(null)
+        }
       }
     }
 
     loadFiles()
-  }, [directoryPath])
+  }, [directoryPath, previousPath])
 
   const handleFileClick = (fileName: string): void => {
-    const filePath = `${directoryPath}\\${fileName}`
-    onFileSelect(filePath)
+    if (directoryPath) {
+      const filePath = `${directoryPath}\\${fileName}`
+      onFileSelect(filePath)
+    }
   }
 
   return (

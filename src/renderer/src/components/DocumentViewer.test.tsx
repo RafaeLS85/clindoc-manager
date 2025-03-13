@@ -12,7 +12,7 @@ vi.mock('../../../electron/api', () => ({
 
 describe('DocumentViewer', () => {
   it('matches snapshot', async () => {
-    const { asFragment } = render(<DocumentViewer />)
+    const { asFragment } = render(<DocumentViewer filePath={''} />)
     expect(asFragment()).toMatchSnapshot()
   })
 })

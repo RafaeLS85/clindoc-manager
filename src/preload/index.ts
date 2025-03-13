@@ -14,11 +14,14 @@ export const api = {
   readDirectory: async (directoryPath: string): Promise<string[]> =>
     ipcRenderer.invoke('files:read-directory', directoryPath), // Add this
   //System API
-  getStoredPath: async (): Promise<string | null> => ipcRenderer.invoke('system:get-stored-path'),
+  getStoredPath: async (): Promise<string | null> => ipcRenderer.invoke('system:get-stored-path'), // Change this
   storePath: async (newPath: string): Promise<void> =>
     ipcRenderer.invoke('system:store-path', newPath),
   openDirectoryDialog: async (): Promise<string | undefined> =>
-    ipcRenderer.invoke('system:open-directory-dialog')
+    ipcRenderer.invoke('system:open-directory-dialog'),
+  getDefaultDirectory: (): Promise<string> => {
+    return ipcRenderer.invoke('system:get-default-directory')
+  }
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to
