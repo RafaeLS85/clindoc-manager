@@ -7,8 +7,8 @@ interface DocumentViewerProps {
 const DocumentViewer: React.FC<DocumentViewerProps> = ({ filePath }) => {
   const [fileTitle, setFileTitle] = useState<string>('')
   const [initialFileContent, setInitialFileContent] = useState<string>('')
-  const [loading, setLoading] = useState<boolean>(false) // Use this for loading state
-  const [error, setError] = useState<string>('') // Use this for errors
+  const [loading, setLoading] = useState<boolean>(false)
+  const [error, setError] = useState<string>('')
   const [editableContent, setEditableContent] = useState<string>('')
   const [saveError, setSaveError] = useState<string | null>(null)
   const [saving, setSaving] = useState<boolean>(false)
@@ -22,8 +22,8 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({ filePath }) => {
   useEffect(() => {
     const loadFile = async (): Promise<void> => {
       if (filePath) {
-        setLoading(true) // Start loading
-        setError('') // Clear any previous errors
+        setLoading(true)
+        setError('')
         try {
           const content = await window.api.readTextFile(filePath)
           setInitialFileContent(content)
@@ -33,17 +33,16 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({ filePath }) => {
               .split('\\')
               .pop()
               ?.replace(/\.[^/.]+$/, '') || ''
-          ) // Extract file name from path
+          )
         } catch (err: unknown) {
           console.error('Error reading selected file:', err)
-          setError(`Error reading file: ${err}`) // Set the error message
+          setError(`Error reading file: ${err}`)
           setInitialFileContent('')
           setEditableContent('')
         } finally {
-          setLoading(false) // Stop loading, whether successful or not
+          setLoading(false)
         }
       } else {
-        // If no file path is selected, clear the content and title.
         setInitialFileContent('')
         setEditableContent('')
         setFileTitle('')
@@ -83,40 +82,58 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({ filePath }) => {
     console.log('Changes Discarded')
   }
 
-  return (
-    <div style={{ padding: '1rem' }}>
-      <h2>DocumentViewer Component</h2>
+  const textAreaStyle: React.CSSProperties = {
+    width: '100%',
+    minHeight: '200px',
+    fontSize: '1rem',
+    height: '100%',
+    color: 'rgba(255, 255, 245, 0.86)',
+    background: '#1b1b1f'
+  }
 
-      {/* Show loading if loading */}
+  return (
+    <div
+      style={{
+        padding: '1rem',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'space-between'
+      }}
+    >
       {loading && <p>Loading file content...</p>}
 
-      {/* Show error if there is an error */}
       {error && <p style={{ color: 'red' }}>{error}</p>}
 
       {fileTitle && (
         <div style={{ marginTop: '1rem' }}>
-          <h3>Selected File Title:</h3>
           <p>{fileTitle}</p>
         </div>
       )}
 
       {initialFileContent && !loading && !error && (
-        <div style={{ marginTop: '1rem' }}>
-          <h3>File Content:</h3>
-          <textarea
-            value={editableContent}
-            onChange={handleEditableContentChange}
-            style={{ width: '100%', minHeight: '200px' }}
-          />
-          <div style={{ marginTop: '1rem' }}>
-            <button onClick={handleSave} disabled={saving || !isEditing}>
-              {saving ? 'Saving...' : 'Save'}
-            </button>
-            <button onClick={handleDiscardChanges} disabled={!isEditing}>
-              Discard Changes
-            </button>
+        <div
+          style={{
+            marginTop: '1rem'
+          }}
+        >
+          <div>
+            <textarea
+              value={editableContent}
+              onChange={handleEditableContentChange}
+              style={textAreaStyle}
+            />
           </div>
-          {saveError && <p style={{ color: 'red' }}>{saveError}</p>}
+          <div>
+            <div style={{ marginTop: '1rem' }}>
+              <button onClick={handleSave} disabled={saving || !isEditing}>
+                {saving ? 'Saving...' : 'Save'}
+              </button>
+              <button onClick={handleDiscardChanges} disabled={!isEditing}>
+                Discard Changes
+              </button>
+            </div>
+            {saveError && <p style={{ color: 'red' }}>{saveError}</p>}
+          </div>
         </div>
       )}
     </div>

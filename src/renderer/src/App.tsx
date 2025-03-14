@@ -5,12 +5,12 @@ import Sidebar from './components/Sidebar'
 function App(): JSX.Element {
   const [selectedDirectory, setSelectedDirectory] = useState<string | null>(null)
   const [selectedFile, setSelectedFile] = useState<string | null>(null)
-  const [defaultDirectory, setDefaultDirectory] = useState<string | null>(null) //Add a default directory state.
+  const [defaultDirectory, setDefaultDirectory] = useState<string | null>(null)
 
   useEffect(() => {
     const getInitialDirectory = async (): Promise<void> => {
       const initialDefaultDirectory = await window.api.getDefaultDirectory()
-      setDefaultDirectory(initialDefaultDirectory) // store the default directory
+      setDefaultDirectory(initialDefaultDirectory)
       const storedPath = await window.api.getStoredPath()
 
       if (storedPath) {
@@ -39,11 +39,10 @@ function App(): JSX.Element {
   }
 
   return (
-    <div style={{ display: 'flex', height: '100vh' }}>
+    <div style={{ display: 'flex', height: '100vh', width: '100vw' }}>
       <Sidebar directoryPath={selectedDirectory} onFileSelect={handleFileSelect} />
-      {/* Only render DocumentViewer if a file is selected */}
       <div style={{ flexGrow: 1, padding: '1rem' }}>
-        <h1>App.tsx</h1>
+        <h3>Clindoc Manager</h3>
         <button onClick={handleDirectorySelect}>Select Directory</button>
         {selectedFile && <DocumentViewer filePath={selectedFile} />}
       </div>
