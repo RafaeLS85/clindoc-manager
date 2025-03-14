@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
-
+import { IoMdClose } from 'react-icons/io'
+import { MdAddBox } from 'react-icons/md'
 interface SidebarProps {
   directoryPath: string | null
   onFileSelect: (filePath: string) => void
@@ -9,6 +10,10 @@ const Sidebar: React.FC<SidebarProps> = ({ directoryPath, onFileSelect }) => {
   const [files, setFiles] = useState<string[]>([])
   const [previousPath, setPreviousPath] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState<string>('')
+  const [newFileName, setNewFileName] = useState<string>('')
+  const [createError, setCreateError] = useState<string | null>(null)
+  const [creating, setCreating] = useState<boolean>(false)
+  const [createNewFile, setCreateNewFile] = useState<boolean>(false)
 
   useEffect(() => {
     const loadFiles = async (): Promise<void> => {
@@ -53,9 +58,65 @@ const Sidebar: React.FC<SidebarProps> = ({ directoryPath, onFileSelect }) => {
     return parts.pop() || ''
   }
 
+  const handleCreateFile = async (): Promise<void> => {
+    if (!directoryPath) {
+      setCreateError('No directory selected')
+      return
+    }
+    if (!newFileName) {
+      setCreateError('File name is required')
+      return
+    }
+    setCreating(true)
+    setCreateError(null)
+
+    try {
+      const filePath = `${directoryPath}\\${newFileName}.docx` // You may change the extencion in the future.
+      await window.api.createFile(filePath)
+      setFiles([...files, `${newFileName}.docx`]) //update the file list
+      setNewFileName('')
+    } catch (err: any) {
+      setCreateError(`Failed to create file. Error: ${err.message}`)
+    } finally {
+      setCreating(false)
+    }
+  }
+
+  const handleNewFileNameChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
+    setNewFileName(event.target.value)
+    setCreateError(null)
+  }
+
   return (
     <div style={{ width: '250px', borderRight: '1px solid #ccc', padding: '16px' }}>
-      <h3>{getFolderName(directoryPath)}</h3>
+      <h3 style={{}}>{getFolderName(directoryPath)}</h3>
+      {/* <button onClick={() => setCreateNewFile(!createNewFile)}>
+        {createNewFile ? 'Close' : 'New File'}
+      </button> */}
+
+      <div onClick={() => setCreateNewFile(!createNewFile)}>
+        {createNewFile ? <IoMdClose /> : <MdAddBox />}
+        {/* <IoIosAddCircleOutline /> */}
+      </div>
+
+      <div>
+        {createNewFile && (
+          <>
+            <input
+              type="text"
+              placeholder="New file name"
+              value={newFileName}
+              onChange={handleNewFileNameChange}
+              style={{ marginBottom: '10px', width: '100%' }}
+            />
+            <button onClick={handleCreateFile} disabled={creating}>
+              {creating ? 'Creating...' : 'Create File'}
+            </button>
+          </>
+        )}
+
+        {createError && <p style={{ color: 'red' }}>{createError}</p>}
+      </div>
       <input
         type="text"
         placeholder="Search files..."
@@ -63,6 +124,7 @@ const Sidebar: React.FC<SidebarProps> = ({ directoryPath, onFileSelect }) => {
         onChange={handleSearchChange}
         style={{ marginBottom: '10px', width: '100%' }}
       />
+
       {searchTerm && filteredFiles.length < files.length && (
         <p style={{ fontSize: '0.8rem', color: 'gray' }}>
           {filteredFiles.length} of {files.length} files are shown

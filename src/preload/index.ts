@@ -21,6 +21,9 @@ export const api = {
     ipcRenderer.invoke('system:open-directory-dialog'),
   getDefaultDirectory: (): Promise<string> => {
     return ipcRenderer.invoke('system:get-default-directory')
+  },
+  createFile: (filePath: string): Promise<any> => {
+    return ipcRenderer.invoke('createFile', filePath)
   }
 }
 
