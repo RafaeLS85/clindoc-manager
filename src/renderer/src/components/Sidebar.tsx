@@ -47,9 +47,15 @@ const Sidebar: React.FC<SidebarProps> = ({ directoryPath, onFileSelect }) => {
     file.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
+  const getFolderName = (path: string | null): string => {
+    if (!path) return ''
+    const parts = path.split('\\') // Assuming Windows-style paths; adjust if needed
+    return parts.pop() || ''
+  }
+
   return (
     <div style={{ width: '250px', borderRight: '1px solid #ccc', padding: '16px' }}>
-      <h3>Files</h3>
+      <h3>{getFolderName(directoryPath)}</h3>
       <input
         type="text"
         placeholder="Search files..."
