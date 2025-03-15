@@ -87,39 +87,64 @@ const Sidebar: React.FC<SidebarProps> = ({ directoryPath, onFileSelect }) => {
     setCreateError(null)
   }
 
+  const mainContainer: React.CSSProperties = {
+    width: '250px',
+    borderRight: '1px solid #ccc',
+    padding: '16px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '16px'
+  }
+
+  const addButtonStyles: React.CSSProperties = {
+    display: 'flex',
+    alignItems: 'center',
+    cursor: 'pointer',
+    gap: '5px',
+    padding: '5px'
+  }
+
+  const listStyles: React.CSSProperties = {
+    listStyle: 'none',
+    padding: 0,
+    margin: 0,
+    overflowY: 'auto',
+    flexGrow: 1
+  }
+
   return (
-    <div style={{ width: '250px', borderRight: '1px solid #ccc', padding: '16px' }}>
+    <div style={mainContainer}>
       <h3 style={{}}>{getFolderName(directoryPath)}</h3>
-      {/* <button onClick={() => setCreateNewFile(!createNewFile)}>
-        {createNewFile ? 'Close' : 'New File'}
-      </button> */}
 
-      <div onClick={() => setCreateNewFile(!createNewFile)}>
-        {createNewFile ? <IoMdClose /> : <MdAddBox />}
-        {/* <IoIosAddCircleOutline /> */}
-      </div>
+      <div style={{ border: '1px solid #ccc' }}>
+        <div style={addButtonStyles} onClick={() => setCreateNewFile(!createNewFile)}>
+          {createNewFile ? <IoMdClose /> : <MdAddBox />}
 
-      <div>
-        {createNewFile && (
-          <>
-            <input
-              type="text"
-              placeholder="New file name"
-              value={newFileName}
-              onChange={handleNewFileNameChange}
-              style={{ marginBottom: '10px', width: '100%' }}
-            />
-            <button onClick={handleCreateFile} disabled={creating}>
-              {creating ? 'Creating...' : 'Create File'}
-            </button>
-          </>
-        )}
+          <p>{!createNewFile ? 'Agregar historia' : 'Cerrar'}</p>
+        </div>
 
-        {createError && <p style={{ color: 'red' }}>{createError}</p>}
+        <div>
+          {createNewFile && (
+            <>
+              <input
+                type="text"
+                placeholder="Nombre del nuevo archivo"
+                value={newFileName}
+                onChange={handleNewFileNameChange}
+                style={{ marginBottom: '10px', width: '100%' }}
+              />
+              <button onClick={handleCreateFile} disabled={creating || !newFileName}>
+                {creating ? 'Espere...' : 'Crear archivo'}
+              </button>
+            </>
+          )}
+
+          {createError && <p style={{ color: 'red' }}>{createError}</p>}
+        </div>
       </div>
       <input
         type="text"
-        placeholder="Search files..."
+        placeholder="Buscar"
         value={searchTerm}
         onChange={handleSearchChange}
         style={{ marginBottom: '10px', width: '100%' }}
@@ -130,7 +155,7 @@ const Sidebar: React.FC<SidebarProps> = ({ directoryPath, onFileSelect }) => {
           {filteredFiles.length} of {files.length} files are shown
         </p>
       )}
-      <ul>
+      <ul style={listStyles}>
         {filteredFiles.map((file) => (
           <li key={file} onClick={() => handleFileClick(file)} style={{ cursor: 'pointer' }}>
             {file}

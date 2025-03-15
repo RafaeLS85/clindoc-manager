@@ -2,7 +2,17 @@ import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
 import { FileFilter } from '../types/api'
 
-// Custom APIs for renderer
+interface CreateFileResult {
+  success: boolean
+  message?: string
+  error?: any
+}
+
+interface ExtractRawTextResult {
+  value: string
+  messages: any[]
+}
+
 export const api = {
   // Files API
   openFileDialog: async (fileFilter: FileFilter[]): Promise<string | undefined> =>
@@ -22,8 +32,11 @@ export const api = {
   getDefaultDirectory: (): Promise<string> => {
     return ipcRenderer.invoke('system:get-default-directory')
   },
-  createFile: (filePath: string): Promise<any> => {
+  createFile: (filePath: string): Promise<CreateFileResult> => {
     return ipcRenderer.invoke('createFile', filePath)
+  },
+  readDocx: async (filePath: string): Promise<ExtractRawTextResult> => {
+    return await ipcRenderer.invoke('read-docx', filePath)
   }
 }
 

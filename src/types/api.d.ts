@@ -1,3 +1,5 @@
+import type { Result } from 'mammoth'
+
 export interface FileFilter {
   name: string
   extensions: string[]
@@ -19,6 +21,7 @@ declare global {
       removeDirectoryChangedListener: (callback: (event: any, path: string) => void) => void
       getDefaultDirectory: () => Promise<string>
       createFile: (filePath: string) => Promise<void>
+      readDocx: (filePath: string) => Promise<Result>
     }
   }
 }

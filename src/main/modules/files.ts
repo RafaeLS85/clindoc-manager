@@ -1,9 +1,10 @@
 import type { IpcMain } from 'electron'
 import { dialog, app } from 'electron'
-import * as fsPromises from 'fs/promises' // Import for promise-based functions
-import * as fs from 'fs' // Import for synchronous functions (existsSync)
+import * as fsPromises from 'fs/promises'
+import * as fs from 'fs'
 import * as path from 'path'
 import { FileFilter } from '../../types/api'
+import mammoth from 'mammoth'
 
 const openFileDialog = async (filters?: FileFilter[]): Promise<string | undefined> => {
   const result = await dialog.showOpenDialog({
@@ -38,7 +39,6 @@ const getDocumentsDirectory = (): string | null => {
 const createAppDataDirectory = (): string => {
   const appDataPath = path.join(app.getPath('appData'), app.getName())
   if (!fs.existsSync(appDataPath)) {
-    // Now use the synchronous fs
     fs.mkdirSync(appDataPath, { recursive: true })
   }
   return appDataPath
@@ -48,7 +48,6 @@ const getSuitableDefaultDirectory = (): string | null => {
   const documentsDir = getDocumentsDirectory()
   if (documentsDir) {
     if (!fs.existsSync(documentsDir)) {
-      // Now use the synchronous fs
       return createAppDataDirectory()
     }
     return documentsDir
@@ -66,12 +65,20 @@ export function setupFileHandlers(ipcMain: IpcMain): void {
   ipcMain.handle('system:get-default-directory', () => {
     return getSuitableDefaultDirectory()
   })
-  ipcMain.handle('createFile', async (_event, filePath: string) => {
+  ipcMain.handle('createFile', async (_event, filePath) => {
     try {
-      await fsPromises.writeFile(filePath, '')
-      console.log(`File created successfully at ${filePath}`)
+      fs.writeFileSync(filePath, '')
+      return { success: true, message: 'File created successfully' }
     } catch (error) {
-      console.error(`Error creating file at ${filePath}:`, error)
+      return { success: false, message: 'Error creating file', error }
+    }
+  })
+  ipcMain.handle('read-docx', async (_event, filePath: string) => {
+    try {
+      const result = await mammoth.extractRawText({ path: filePath })
+      return result
+    } catch (error) {
+      console.error('Error reading docx:', error)
       throw error
     }
   })

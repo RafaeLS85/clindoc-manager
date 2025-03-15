@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import DocumentViewer from './components/DocumentViewer'
 import Sidebar from './components/Sidebar'
+// import DocxReader from './components/DocxReader'
 
 function App(): JSX.Element {
   const [selectedDirectory, setSelectedDirectory] = useState<string | null>(null)
@@ -46,6 +47,7 @@ function App(): JSX.Element {
         <button onClick={handleDirectorySelect}>Select Directory</button>
         {selectedFile && <DocumentViewer filePath={selectedFile} />}
       </div>
+      {/* <DocxReader /> */}
     </div>
   )
 }
