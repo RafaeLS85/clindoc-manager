@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import DocumentViewer from './components/DocumentViewer'
-import Sidebar from './components/Sidebar'
+import Sidebar from './components/Sidebar/Sidebar'
 // import DocxReader from './components/DocxReader'
 
 function App(): JSX.Element {

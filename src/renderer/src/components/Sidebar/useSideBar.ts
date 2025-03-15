@@ -1,12 +1,26 @@
-import React, { useEffect, useState } from 'react'
-import { IoMdClose } from 'react-icons/io'
-import { MdAddBox } from 'react-icons/md'
-interface SidebarProps {
+import { useEffect, useState } from 'react'
+
+interface ReturnValues {
+  files: string[]
+  searchTerm: string
+  newFileName: string
+  createError: string | null
+  creating: boolean
+  createNewFile: boolean
+  filteredFiles: string[]
+  getFolderName: (path: string | null) => string
+  handleNewFileNameChange: (event: React.ChangeEvent<HTMLInputElement>) => void
+  handleCreateFile: () => void
+  handleFileClick: (fileName: string) => void
+  setCreateNewFile: React.Dispatch<React.SetStateAction<boolean>>
+  handleSearchChange: (event: React.ChangeEvent<HTMLInputElement>) => void
+}
+
+interface UseSideBarProps {
   directoryPath: string | null
   onFileSelect: (filePath: string) => void
 }
-
-const Sidebar: React.FC<SidebarProps> = ({ directoryPath, onFileSelect }) => {
+export const useSideBar = ({ directoryPath, onFileSelect }: UseSideBarProps): ReturnValues => {
   const [files, setFiles] = useState<string[]>([])
   const [previousPath, setPreviousPath] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState<string>('')
@@ -86,84 +100,19 @@ const Sidebar: React.FC<SidebarProps> = ({ directoryPath, onFileSelect }) => {
     setNewFileName(event.target.value)
     setCreateError(null)
   }
-
-  const mainContainer: React.CSSProperties = {
-    width: '250px',
-    borderRight: '1px solid #ccc',
-    padding: '16px',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '16px'
+  return {
+    files,
+    searchTerm,
+    newFileName,
+    createError,
+    creating,
+    createNewFile,
+    filteredFiles,
+    getFolderName,
+    handleNewFileNameChange,
+    handleCreateFile,
+    handleFileClick,
+    setCreateNewFile,
+    handleSearchChange
   }
-
-  const addButtonStyles: React.CSSProperties = {
-    display: 'flex',
-    alignItems: 'center',
-    cursor: 'pointer',
-    gap: '5px',
-    padding: '5px'
-  }
-
-  const listStyles: React.CSSProperties = {
-    listStyle: 'none',
-    padding: 0,
-    margin: 0,
-    overflowY: 'auto',
-    flexGrow: 1
-  }
-
-  return (
-    <div style={mainContainer}>
-      <h3 style={{}}>{getFolderName(directoryPath)}</h3>
-
-      <div style={{ border: '1px solid #ccc' }}>
-        <div style={addButtonStyles} onClick={() => setCreateNewFile(!createNewFile)}>
-          {createNewFile ? <IoMdClose /> : <MdAddBox />}
-
-          <p>{!createNewFile ? 'Agregar historia' : 'Cerrar'}</p>
-        </div>
-
-        <div>
-          {createNewFile && (
-            <>
-              <input
-                type="text"
-                placeholder="Nombre del nuevo archivo"
-                value={newFileName}
-                onChange={handleNewFileNameChange}
-                style={{ marginBottom: '10px', width: '100%' }}
-              />
-              <button onClick={handleCreateFile} disabled={creating || !newFileName}>
-                {creating ? 'Espere...' : 'Crear archivo'}
-              </button>
-            </>
-          )}
-
-          {createError && <p style={{ color: 'red' }}>{createError}</p>}
-        </div>
-      </div>
-      <input
-        type="text"
-        placeholder="Buscar"
-        value={searchTerm}
-        onChange={handleSearchChange}
-        style={{ marginBottom: '10px', width: '100%' }}
-      />
-
-      {searchTerm && filteredFiles.length < files.length && (
-        <p style={{ fontSize: '0.8rem', color: 'gray' }}>
-          {filteredFiles.length} of {files.length} files are shown
-        </p>
-      )}
-      <ul style={listStyles}>
-        {filteredFiles.map((file) => (
-          <li key={file} onClick={() => handleFileClick(file)} style={{ cursor: 'pointer' }}>
-            {file}
-          </li>
-        ))}
-      </ul>
-    </div>
-  )
 }
-
-export default Sidebar
