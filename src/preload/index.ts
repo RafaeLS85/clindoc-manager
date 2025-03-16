@@ -37,6 +37,12 @@ export const api = {
   },
   readDocx: async (filePath: string): Promise<ExtractRawTextResult> => {
     return await ipcRenderer.invoke('read-docx', filePath)
+  },
+  existsDirectory: async (path: string): Promise<boolean> => {
+    return await ipcRenderer.invoke('exists-directory', path)
+  },
+  createDirectory: async (path: string): Promise<void> => {
+    await ipcRenderer.invoke('create-directory', path)
   }
 }
 

@@ -22,6 +22,8 @@ declare global {
       getDefaultDirectory: () => Promise<string>
       createFile: (filePath: string) => Promise<void>
       readDocx: (filePath: string) => Promise<Result>
+      existsDirectory: (path: string) => Promise<boolean>
+      createDirectory: (path: string) => Promise<void>
     }
   }
 }

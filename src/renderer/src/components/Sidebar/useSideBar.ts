@@ -52,6 +52,9 @@ export const useSideBar = ({ directoryPath, onFileSelect }: UseSideBarProps): Re
   }, [directoryPath, previousPath])
 
   const handleFileClick = (fileName: string): void => {
+    // en el caso de ser una carpeta? como validar?
+    if (!fileName.includes('.')) return // TODO: recorrer la lista de archivos dentro de la carpeta.
+
     if (directoryPath) {
       const filePath = `${directoryPath}\\${fileName}`
       onFileSelect(filePath)

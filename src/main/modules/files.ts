@@ -67,7 +67,7 @@ export function setupFileHandlers(ipcMain: IpcMain): void {
   })
   ipcMain.handle('createFile', async (_event, filePath) => {
     try {
-      fs.writeFileSync(filePath, '')
+      await fsPromises.writeFile(filePath, '') // Use fsPromises and await
       return { success: true, message: 'File created successfully' }
     } catch (error) {
       return { success: false, message: 'Error creating file', error }
@@ -80,6 +80,22 @@ export function setupFileHandlers(ipcMain: IpcMain): void {
     } catch (error) {
       console.error('Error reading docx:', error)
       throw error
+    }
+  })
+  ipcMain.handle('exists-directory', async (_event, path: string): Promise<boolean> => {
+    //remove event from arguments
+    try {
+      await fsPromises.access(path, fs.constants.F_OK) //use await and fsPromises
+      return true // Directory exists
+    } catch (error) {
+      return false // Directory does not exist
+    }
+  })
+  ipcMain.handle('create-directory', async (_event, path: string) => {
+    try {
+      await fsPromises.mkdir(path, { recursive: true }) //use await and fsPromises
+    } catch (error) {
+      console.error('Error creating directory:', error)
     }
   })
 }

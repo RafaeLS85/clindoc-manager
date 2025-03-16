@@ -36,6 +36,9 @@ const Sidebar: React.FC<SidebarProps> = ({ directoryPath, onFileSelect }: Sideba
 
   return (
     <div style={mainContainer}>
+      {/* {JSON.stringify(files)} */}
+      {/* {JSON.stringify(filteredFiles)} */}
+
       <h3>{getFolderName(directoryPath)}</h3>
       <CreateNewFile
         createError={createError}
