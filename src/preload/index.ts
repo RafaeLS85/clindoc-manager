@@ -1,12 +1,6 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
-import { FileFilter } from '../types/api'
-
-interface CreateFileResult {
-  success: boolean
-  message?: string
-  error?: any
-}
+import { FileFilter, FileStat, CreateFileResult } from '../types/api'
 
 interface ExtractRawTextResult {
   value: string
@@ -22,9 +16,9 @@ export const api = {
   saveTextFile: async (filePath: string, content: string): Promise<void> =>
     ipcRenderer.invoke('files:save-text-file', filePath, content),
   readDirectory: async (directoryPath: string): Promise<string[]> =>
-    ipcRenderer.invoke('files:read-directory', directoryPath), // Add this
+    ipcRenderer.invoke('files:read-directory', directoryPath),
   //System API
-  getStoredPath: async (): Promise<string | null> => ipcRenderer.invoke('system:get-stored-path'), // Change this
+  getStoredPath: async (): Promise<string | null> => ipcRenderer.invoke('system:get-stored-path'),
   storePath: async (newPath: string): Promise<void> =>
     ipcRenderer.invoke('system:store-path', newPath),
   openDirectoryDialog: async (): Promise<string | undefined> =>
@@ -43,7 +37,11 @@ export const api = {
   },
   createDirectory: async (path: string): Promise<void> => {
     await ipcRenderer.invoke('create-directory', path)
-  }
+  },
+  isDirectory: (directoryPath: string, fileName: string): Promise<boolean> =>
+    ipcRenderer.invoke('get-is-directory', directoryPath, fileName),
+  getFileStat: (directoryPath: string, fileName: string): Promise<FileStat | null> =>
+    ipcRenderer.invoke('get-file-stat', directoryPath, fileName)
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to

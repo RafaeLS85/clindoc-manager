@@ -14,12 +14,14 @@ interface ReturnValues {
   handleFileClick: (fileName: string) => void
   setCreateNewFile: React.Dispatch<React.SetStateAction<boolean>>
   handleSearchChange: (event: React.ChangeEvent<HTMLInputElement>) => void
+  isDirectory: (filename: string) => Promise<boolean>
 }
 
 interface UseSideBarProps {
   directoryPath: string | null
   onFileSelect: (filePath: string) => void
 }
+
 export const useSideBar = ({ directoryPath, onFileSelect }: UseSideBarProps): ReturnValues => {
   const [files, setFiles] = useState<string[]>([])
   const [previousPath, setPreviousPath] = useState<string | null>(null)
@@ -50,14 +52,40 @@ export const useSideBar = ({ directoryPath, onFileSelect }: UseSideBarProps): Re
 
     loadFiles()
   }, [directoryPath, previousPath])
-
-  const handleFileClick = (fileName: string): void => {
-    // en el caso de ser una carpeta? como validar?
-    if (!fileName.includes('.')) return // TODO: recorrer la lista de archivos dentro de la carpeta.
-
+  const isDirectory = async (fileName: string): Promise<boolean> => {
     if (directoryPath) {
-      const filePath = `${directoryPath}\\${fileName}`
-      onFileSelect(filePath)
+      try {
+        return await window.api.isDirectory(directoryPath, fileName)
+      } catch (error) {
+        console.error(`Error checking file type: ${error}`)
+        return false
+      }
+    }
+    return false
+  }
+
+  const handleFileClick = async (fileName: string): Promise<void> => {
+    if (directoryPath) {
+      try {
+        const isDir = await window.api.isDirectory(directoryPath, fileName)
+        console.log(`isDir: ${isDir}`)
+        if (isDir) {
+          // It's a directory
+          console.log(`Clicked on directory: ${fileName}`)
+          // TODO: Handle directory click appropriately (e.g., update directoryPath)
+          //For now it will do nothing
+          // For example:
+          // setDirectoryPath(fullPath); // Assuming you have a state variable for current directory path
+
+          return
+        } else {
+          // It's a file
+          const fullPath = `${directoryPath}\\${fileName}` // We dont have path.join anymore
+          onFileSelect(fullPath)
+        }
+      } catch (error) {
+        console.error(`Error checking file type: ${error}`)
+      }
     }
   }
 
@@ -88,10 +116,14 @@ export const useSideBar = ({ directoryPath, onFileSelect }: UseSideBarProps): Re
     setCreateError(null)
 
     try {
-      const filePath = `${directoryPath}\\${newFileName}.docx` // You may change the extencion in the future.
-      await window.api.createFile(filePath)
-      setFiles([...files, `${newFileName}.docx`]) //update the file list
-      setNewFileName('')
+      const filePath = `${directoryPath}\\${newFileName}.docx`
+      const result = await window.api.createFile(filePath)
+      if (result.success) {
+        setFiles([...files, `${newFileName}.docx`])
+        setNewFileName('')
+      } else {
+        setCreateError(result.error)
+      }
     } catch (err: any) {
       setCreateError(`Failed to create file. Error: ${err.message}`)
     } finally {
@@ -103,6 +135,7 @@ export const useSideBar = ({ directoryPath, onFileSelect }: UseSideBarProps): Re
     setNewFileName(event.target.value)
     setCreateError(null)
   }
+
   return {
     files,
     searchTerm,
@@ -116,6 +149,7 @@ export const useSideBar = ({ directoryPath, onFileSelect }: UseSideBarProps): Re
     handleCreateFile,
     handleFileClick,
     setCreateNewFile,
-    handleSearchChange
+    handleSearchChange,
+    isDirectory
   }
 }

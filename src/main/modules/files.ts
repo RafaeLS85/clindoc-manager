@@ -6,6 +6,26 @@ import * as path from 'path'
 import { FileFilter } from '../../types/api'
 import mammoth from 'mammoth'
 
+const isDirectory = (fullPath: string): boolean => {
+  try {
+    const stats = fs.statSync(fullPath)
+    return stats.isDirectory()
+  } catch (error) {
+    console.error(`Error checking file type: ${error}`)
+    return false
+  }
+}
+
+const getFileStat = (fullPath: string): fs.Stats | null => {
+  try {
+    const stats = fs.statSync(fullPath)
+    return stats
+  } catch (error) {
+    console.error(`Error checking file stat: ${error}`)
+    return null
+  }
+}
+
 const openFileDialog = async (filters?: FileFilter[]): Promise<string | undefined> => {
   const result = await dialog.showOpenDialog({
     properties: ['openFile'],
@@ -67,10 +87,11 @@ export function setupFileHandlers(ipcMain: IpcMain): void {
   })
   ipcMain.handle('createFile', async (_event, filePath) => {
     try {
-      await fsPromises.writeFile(filePath, '') // Use fsPromises and await
-      return { success: true, message: 'File created successfully' }
+      await fsPromises.writeFile(filePath, '')
+      return { success: true }
     } catch (error) {
-      return { success: false, message: 'Error creating file', error }
+      console.error(`Failed to create file ${filePath}:`, error)
+      return { success: false, error }
     }
   })
   ipcMain.handle('read-docx', async (_event, filePath: string) => {
@@ -83,19 +104,31 @@ export function setupFileHandlers(ipcMain: IpcMain): void {
     }
   })
   ipcMain.handle('exists-directory', async (_event, path: string): Promise<boolean> => {
-    //remove event from arguments
     try {
-      await fsPromises.access(path, fs.constants.F_OK) //use await and fsPromises
-      return true // Directory exists
+      await fsPromises.access(path, fs.constants.F_OK)
+      return true
     } catch (error) {
-      return false // Directory does not exist
+      console.log(`Directory does not exist: ${error}`)
+      return false
     }
   })
   ipcMain.handle('create-directory', async (_event, path: string) => {
     try {
-      await fsPromises.mkdir(path, { recursive: true }) //use await and fsPromises
+      await fsPromises.mkdir(path, { recursive: true })
     } catch (error) {
       console.error('Error creating directory:', error)
     }
+  })
+  ipcMain.handle('is-directory', async (_event, directoryPath: string, fileName: string) => {
+    const fullPath = path.join(directoryPath, fileName)
+    return isDirectory(fullPath)
+  })
+  ipcMain.handle('get-is-directory', async (_event, directoryPath: string, fileName: string) => {
+    const fullPath = path.join(directoryPath, fileName)
+    return isDirectory(fullPath)
+  })
+  ipcMain.handle('get-file-stat', async (_event, directoryPath: string, fileName: string) => {
+    const fullPath = path.join(directoryPath, fileName)
+    return getFileStat(fullPath)
   })
 }
